@@ -1,6 +1,6 @@
-// Usage (inside the api container, where MIGRATION_DATABASE_URL is set):
-//   railway ssh --service api --environment staging -- node /app/scripts/qa-cleanup.cjs
-// Or paste the queries into the Railway dashboard (Postgres > Data > Query).
+// Usage: run with MIGRATION_DATABASE_URL set, from somewhere that can reach the
+// database (Railway private network, e.g. an SSH session into the api service).
+// The staging database has no public endpoint by design.
 // Deletes only QA smoke-test data: users qa-smoke-*@example.com and their qa-smoke-* organisations.
 const { Client } = require('pg');
 (async () => {
