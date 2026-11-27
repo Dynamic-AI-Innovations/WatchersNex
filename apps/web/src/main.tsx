@@ -4,8 +4,9 @@ import './styles/tokens.css';
 import './styles/app.css';
 import { StrictMode, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router';
 import { ProblemNotice } from './components/ui';
+import { safeNext } from './lib/nav';
 import { SessionProvider, useSession } from './lib/session';
 import {
   CheckEmailPage,
@@ -35,11 +36,17 @@ function RequireSession({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** Pages for signed-out visitors; signed-in users go to their workspace. */
+/**
+ * Pages for signed-out visitors. A signed-in user goes on to the safe ?next=
+ * destination (e.g. back to an invitation), otherwise to their workspace.
+ * Without this, signing in from an invitation raced to "/" and the invitee
+ * was offered "create an organisation" instead of joining.
+ */
 function GuestOnly({ children }: { children: ReactNode }) {
   const session = useSession();
+  const [params] = useSearchParams();
   if (session.status === 'loading') return <div className="center-screen">Loading…</div>;
-  if (session.status === 'signed-in') return <Navigate to="/" replace />;
+  if (session.status === 'signed-in') return <Navigate to={safeNext(params.get('next'))} replace />;
   return <>{children}</>;
 }
 

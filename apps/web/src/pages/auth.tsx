@@ -2,12 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { AuthLayout, Field, Notice, ProblemNotice, useSubmit } from '../components/ui';
 import { api } from '../lib/api';
+import { safeNext } from '../lib/nav';
 import { useSession } from '../lib/session';
-
-/** Only same-site relative paths are accepted as a return destination (no open redirect). */
-function safeNext(value: string | null): string {
-  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\') ? value : '/';
-}
 
 export function SignInPage() {
   const navigate = useNavigate();
