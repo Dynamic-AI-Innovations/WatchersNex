@@ -97,6 +97,88 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return payload as T;
 }
 
+export type MonitorStatus = 'pending' | 'up' | 'suspected' | 'down' | 'recovering' | 'paused';
+export type MonitorType = 'http' | 'api' | 'ssl' | 'dns';
+
+export interface Monitor {
+  id: string;
+  name: string;
+  type: MonitorType;
+  target: string;
+  config: Record<string, unknown>;
+  intervalSeconds: number;
+  criticality: 'critical' | 'standard' | 'low';
+  enabled: boolean;
+  createdAt: string;
+  status: MonitorStatus;
+  lastCheckedAt: string | null;
+  lastOutcome: 'up' | 'down' | null;
+  lastStatusCode: number | null;
+  lastLatencyMs: number | null;
+  lastFailureClass: string | null;
+  lastMessage: string | null;
+  openIncidentId: string | null;
+  checksPassed24h?: number | null;
+}
+
+export interface MonitorDetail extends Monitor {
+  stats24h: { checks: number; checksPassed: number | null; latencyP50Ms: number | null; latencyP95Ms: number | null };
+  recentChecks: Array<{ checked_at: string; outcome: 'up' | 'down'; latency_ms: number | null; failure_class: string | null; status_code: number | null; message: string | null }>;
+  series: Array<{ at: string; outcome: 'up' | 'down'; latencyMs: number | null }>;
+  incidents: Array<{ id: string; number: number; title: string; severity: Severity; status: IncidentStatus; started_at: string; resolved_at: string | null }>;
+}
+
+export type Severity = 'sev1' | 'sev2' | 'sev3' | 'sev4';
+export type IncidentStatus = 'open' | 'acknowledged' | 'resolved';
+
+export interface IncidentSummary {
+  id: string;
+  number: number;
+  title: string;
+  severity: Severity;
+  status: IncidentStatus;
+  started_at: string;
+  detected_at: string;
+  acknowledged_at: string | null;
+  resolved_at: string | null;
+  monitorId: string;
+  monitorName: string;
+  acknowledgedByName: string | null;
+}
+
+export interface IncidentDetail {
+  id: string;
+  number: number;
+  title: string;
+  severity: Severity;
+  status: IncidentStatus;
+  started_at: string;
+  detected_at: string;
+  acknowledged_at: string | null;
+  resolved_at: string | null;
+  monitor_id: string;
+  monitorName: string;
+  monitorTarget: string;
+  durationSeconds: number;
+  timeline: Array<{ id: string; type: string; occurred_at: string; details: Record<string, unknown>; actorName: string | null }>;
+}
+
+export interface Overview {
+  monitors: { total: number; up: number; down: number; degraded: number; pending: number; paused: number };
+  openIncidents: Array<{ id: string; number: number; title: string; severity: Severity; status: IncidentStatus; started_at: string; monitorName: string }>;
+  needsAttention: Monitor[];
+}
+
+export interface CreateMonitorInput {
+  type: MonitorType;
+  name: string;
+  target: string;
+  intervalSeconds: number;
+  criticality: 'critical' | 'standard' | 'low';
+  config?: Record<string, unknown>;
+  authorisationAttested: boolean;
+}
+
 export const api = {
   register: (input: { email: string; name: string; password: string }) => request<void>('POST', '/auth/register', input),
   verifyEmail: (token: string) => request<void>('POST', '/auth/verify-email', { token }),
@@ -108,4 +190,16 @@ export const api = {
   me: () => request<{ user: User; organisations: OrgSummary[] }>('GET', '/me'),
   createOrg: (input: { name: string; slug?: string }) => request<Organisation>('POST', '/orgs', input),
   getOrg: (orgId: string) => request<Organisation>('GET', `/orgs/${orgId}`),
+  overview: (orgId: string) => request<Overview>('GET', `/orgs/${orgId}/overview`),
+  monitors: (orgId: string) => request<{ items: Monitor[] }>('GET', `/orgs/${orgId}/monitors`),
+  monitor: (orgId: string, id: string) => request<MonitorDetail>('GET', `/orgs/${orgId}/monitors/${id}`),
+  createMonitor: (orgId: string, input: CreateMonitorInput) => request<Monitor>('POST', `/orgs/${orgId}/monitors`, input),
+  pauseMonitor: (orgId: string, id: string) => request<Monitor>('POST', `/orgs/${orgId}/monitors/${id}/pause`),
+  resumeMonitor: (orgId: string, id: string) => request<Monitor>('POST', `/orgs/${orgId}/monitors/${id}/resume`),
+  deleteMonitor: (orgId: string, id: string) => request<void>('DELETE', `/orgs/${orgId}/monitors/${id}`),
+  incidents: (orgId: string, status: 'open' | 'resolved' | 'all' = 'all') => request<{ items: IncidentSummary[] }>('GET', `/orgs/${orgId}/incidents?status=${status}`),
+  incident: (orgId: string, id: string) => request<IncidentDetail>('GET', `/orgs/${orgId}/incidents/${id}`),
+  acknowledge: (orgId: string, id: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/acknowledge`),
+  resolve: (orgId: string, id: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/resolve`),
+  addNote: (orgId: string, id: string, text: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/notes`, { text }),
 };

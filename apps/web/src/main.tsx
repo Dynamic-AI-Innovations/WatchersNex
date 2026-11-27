@@ -15,7 +15,11 @@ import {
   SignUpPage,
   VerifyEmailPage,
 } from './pages/auth';
-import { CreateOrganisationPage, WorkspacePage } from './pages/workspace';
+import { IncidentDetailPage, IncidentsPage } from './pages/incidents';
+import { OverviewPage } from './pages/overview';
+import { NewServicePage, ServiceDetailPage, ServicesPage } from './pages/services';
+import { OrgShell } from './pages/shell';
+import { CreateOrganisationPage } from './pages/workspace';
 
 /** Pages that need a session; others are reachable signed out. */
 function RequireSession({ children }: { children: ReactNode }) {
@@ -52,7 +56,14 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/forgot-password" element={<GuestOnly><ForgotPasswordPage /></GuestOnly>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/onboarding" element={<RequireSession><CreateOrganisationPage /></RequireSession>} />
-          <Route path="/o/:orgId" element={<RequireSession><WorkspacePage /></RequireSession>} />
+          <Route path="/o/:orgId" element={<RequireSession><OrgShell /></RequireSession>}>
+            <Route index element={<OverviewPage />} />
+            <Route path="services" element={<ServicesPage />} />
+            <Route path="services/new" element={<NewServicePage />} />
+            <Route path="services/:monitorId" element={<ServiceDetailPage />} />
+            <Route path="incidents" element={<IncidentsPage />} />
+            <Route path="incidents/:incidentId" element={<IncidentDetailPage />} />
+          </Route>
           <Route path="/" element={<RequireSession><Home /></RequireSession>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
