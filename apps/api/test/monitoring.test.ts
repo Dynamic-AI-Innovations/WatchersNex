@@ -161,6 +161,27 @@ describe('monitoring engine and incident lifecycle', () => {
     expect(res.rows[0].n).toBeGreaterThan(0);
   });
 
+  it('closes the open incident when its service is deleted', async () => {
+    const created = await as(owner)
+      .post(`/v1/orgs/${orgId}/monitors`, { type: 'http', name: 'Doomed', target: fixture.url, intervalSeconds: 60, authorisationAttested: true })
+      .expect(201);
+    const doomedId = created.body.id;
+    fixture.status = 503;
+    for (let i = 0; i < 2; i += 1) {
+      await admin.query(`UPDATE monitors SET next_check_at = now() - interval '1 second' WHERE id = $1`, [doomedId]);
+      await engine.tick();
+    }
+    const incidentId = (await as(owner).get(`/v1/orgs/${orgId}/monitors/${doomedId}`).expect(200)).body.openIncidentId;
+    expect(incidentId).toBeTruthy();
+
+    await http.delete(`/v1/orgs/${orgId}/monitors/${doomedId}`).set('Cookie', owner.cookie).set('X-CSRF-Token', owner.csrf).expect(204);
+    const incident = (await as(owner).get(`/v1/orgs/${orgId}/incidents/${incidentId}`).expect(200)).body;
+    expect(incident.status).toBe('resolved');
+    expect(incident.timeline.at(-1)).toMatchObject({ type: 'resolved', details: { reason: 'monitor-deleted' } });
+    await as(owner).get(`/v1/orgs/${orgId}/monitors/${doomedId}`).expect(404);
+    fixture.status = 200;
+  });
+
   it('stops checking a paused monitor', async () => {
     await as(owner).post(`/v1/orgs/${orgId}/monitors/${monitorId}/pause`).expect(201);
     const before = fixture.hits;

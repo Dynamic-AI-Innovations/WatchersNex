@@ -81,7 +81,10 @@ function describe(event: IncidentDetail['timeline'][number]): string {
   if (event.type === 'opened') return `${String(d.message ?? '')} Confirmed from ${String(d.region ?? 'the probe region')}.`;
   if (event.type === 'notified') return `Email to ${String(d.recipients ?? 0)} owner(s) and admin(s) (${d.event === 'resolved' ? 'recovery' : 'outage'}).`;
   if (event.type === 'note') return String(d.text ?? '');
-  if (event.type === 'resolved') return d.automatic ? `Service recovered: ${String(d.message ?? 'two healthy checks in a row')}.` : 'Resolved manually.';
+  if (event.type === 'resolved') {
+    if (d.automatic) return `Service recovered: ${String(d.message ?? 'two healthy checks in a row')}.`;
+    return d.reason === 'monitor-deleted' ? 'Closed because the service was deleted.' : 'Resolved manually.';
+  }
   return '';
 }
 

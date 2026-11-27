@@ -233,7 +233,26 @@ export class MonitorsService {
         .where('deleted_at', 'is', null)
         .executeTakeFirst();
       if (!updated.numUpdatedRows) throw notFound();
-      await this.audit(tx, orgId, userId, 'monitor.delete', monitorId, meta, {});
+      // An open incident for a service that no longer exists can never recover
+      // on its own; close it, and say why on its timeline.
+      const closed = await tx
+        .updateTable('incidents')
+        .set({ status: 'resolved', resolved_at: new Date(), resolved_by: userId })
+        .where('monitor_id', '=', monitorId)
+        .where('status', '<>', 'resolved')
+        .returning('id')
+        .execute();
+      for (const incident of closed) {
+        await tx
+          .insertInto('incident_events')
+          .values({
+            id: randomUUID(), organisation_id: orgId, incident_id: incident.id, type: 'resolved', actor_id: userId,
+            details: JSON.stringify({ automatic: false, reason: 'monitor-deleted' }),
+          })
+          .execute();
+      }
+      await tx.updateTable('monitor_states').set({ open_incident_id: null }).where('monitor_id', '=', monitorId).execute();
+      await this.audit(tx, orgId, userId, 'monitor.delete', monitorId, meta, { incidentsClosed: closed.length });
     });
   }
 
