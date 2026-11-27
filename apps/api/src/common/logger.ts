@@ -17,6 +17,8 @@ export const REDACT_PATHS = [
   '*.headers.authorization',
 ];
 
+export const LOGGER = Symbol('LOGGER');
+
 export function createLogger(level: string): Logger {
   return pino({
     level,
