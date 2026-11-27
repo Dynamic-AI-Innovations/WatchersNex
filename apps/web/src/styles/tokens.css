@@ -1,0 +1,41 @@
+/*
+ * WatchersNex design tokens: Kickoff Package, Section 6 (approved D-03).
+ * Brand values are used for fills, dots and chart marks; the "-ink" tokens
+ * are the WCAG 2.2 AA text variants (contrast ratios in the comments).
+ */
+:root {
+  --navy-900: #0b1633;
+  --royal-600: #315bce;      /* 5.97:1 on white */
+  --royal-700: #2849a8;
+  --cyan-400: #06d6d0;       /* never text on light surfaces */
+  --ice-50: #e6f4ff;
+  --cloud-50: #f4f7fc;
+  --white: #ffffff;
+  --graphite-900: #182238;   /* 14.76:1 on Cloud */
+  --slate-500: #64748b;      /* icons, borders, "unknown" */
+  --text-secondary: #5a6a80; /* 5.14:1 on Cloud */
+  --border: #d9e0ec;
+
+  --green-500: #22c55e;
+  --success-ink: #15803d;    /* 5.02:1 on white */
+  --amber-500: #f59e0b;
+  --warning-ink: #b45309;    /* 5.02:1 on white */
+  --red-500: #ef4444;
+  --critical-ink: #b91c1c;   /* 6.47:1 on white */
+  --accent-ink: #0e7490;     /* 5.36:1 on white */
+
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Manrope Variable', 'Inter Variable', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius: 8px;
+  --sidebar-width: 240px;
+  --focus-ring: 0 0 0 3px rgba(49, 91, 206, 0.35);
+}

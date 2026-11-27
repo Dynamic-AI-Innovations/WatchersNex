@@ -18,6 +18,12 @@ const schema = z.object({
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 
+  /**
+   * Reverse proxies in front of the API whose X-Forwarded-For entries are
+   * trusted for the client IP: 1 for Railway's edge alone, 2 when the web
+   * app's Vercel rewrite also sits in front.
+   */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
   /** Public URL of the web app; links in emails point here. */
   APP_BASE_URL: z.string().url().default('http://localhost:5173'),
   /** Secure cookies need HTTPS. Only local development and tests turn this off. */

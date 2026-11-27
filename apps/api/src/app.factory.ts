@@ -19,9 +19,9 @@ export async function createApp(config: AppConfig, overrides: AppOverrides = {})
   });
 
   app.disable('x-powered-by');
-  // One proxy hop (Railway's edge) sits in front of the API: trust exactly that
-  // one for the client IP used in rate limits and audit, and no further.
-  app.set('trust proxy', 1);
+  // Trust exactly the configured number of proxy hops for the client IP used in
+  // rate limits and audit (Railway's edge, plus Vercel's rewrite when present).
+  app.set('trust proxy', config.TRUST_PROXY_HOPS);
   app.use(cookieParser());
   app.use(
     pinoHttp({

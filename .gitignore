@@ -8,3 +8,4 @@ coverage/
 .DS_Store
 # embedded PostgreSQL data used by local tests
 .pgdata/
+.vercel
