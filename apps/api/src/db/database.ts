@@ -51,6 +51,77 @@ export interface Database {
     role: 'owner' | 'admin' | 'operator' | 'viewer';
     created_at: Generated<Date>;
   };
+  monitors: {
+    id: string;
+    organisation_id: string;
+    name: string;
+    type: 'http' | 'api' | 'ssl' | 'dns';
+    target: string;
+    config: unknown;
+    interval_seconds: number;
+    criticality: Generated<'critical' | 'standard' | 'low'>;
+    enabled: Generated<boolean>;
+    created_by: string;
+    authorisation_attested_at: Date;
+    next_check_at: Generated<Date>;
+    created_at: Generated<Date>;
+    updated_at: Generated<Date>;
+    deleted_at: Date | null;
+  };
+  monitor_states: {
+    monitor_id: string;
+    organisation_id: string;
+    state: Generated<'pending' | 'up' | 'suspected' | 'down' | 'recovering' | 'paused'>;
+    consecutive_failures: Generated<number>;
+    consecutive_successes: Generated<number>;
+    first_failure_at: Date | null;
+    open_incident_id: string | null;
+    last_checked_at: Date | null;
+    last_outcome: string | null;
+    last_status_code: number | null;
+    last_latency_ms: number | null;
+    last_failure_class: string | null;
+    last_detail: string | null;
+    version: Generated<string>;
+  };
+  check_results: {
+    monitor_id: string;
+    organisation_id: string;
+    region: string;
+    scheduled_at: Date;
+    checked_at: Date;
+    attempt: number;
+    outcome: 'up' | 'down';
+    failure_class: string | null;
+    status_code: number | null;
+    latency_ms: number | null;
+    timings_ms: unknown;
+    detail: unknown;
+  };
+  incidents: {
+    id: string;
+    organisation_id: string;
+    number: number;
+    monitor_id: string;
+    title: string;
+    severity: 'sev1' | 'sev2' | 'sev3' | 'sev4';
+    status: 'open' | 'acknowledged' | 'resolved';
+    started_at: Date;
+    detected_at: Date;
+    acknowledged_at: Date | null;
+    acknowledged_by: string | null;
+    resolved_at: Date | null;
+    resolved_by: string | null;
+  };
+  incident_events: {
+    id: string;
+    organisation_id: string;
+    incident_id: string;
+    type: 'opened' | 'notified' | 'acknowledged' | 'note' | 'severity_changed' | 'resolved' | 'reopened';
+    actor_id: string | null;
+    occurred_at: Generated<Date>;
+    details: Generated<unknown>;
+  };
   audit_events: {
     id: string;
     organisation_id: string | null;

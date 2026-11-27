@@ -66,6 +66,18 @@ export class OrgsService {
     return membership;
   }
 
+  /**
+   * Membership with one of the allowed roles. Non-members get 404 (existence
+   * isn't revealed); members without the role get 403 with a clear reason.
+   */
+  async requireRole(userId: string, orgId: string, allowed: Role[]): Promise<OrgSummary> {
+    const membership = await this.requireMembership(userId, orgId);
+    if (!allowed.includes(membership.role)) {
+      throw new ProblemException(403, 'forbidden', 'Not allowed', `Your role (${membership.role}) can't do this. Ask an organisation admin.`);
+    }
+    return membership;
+  }
+
   async create(userId: string, input: z.infer<typeof createOrgSchema>, meta: RequestMeta) {
     const id = randomUUID();
     const slug = input.slug ?? slugify(input.name);

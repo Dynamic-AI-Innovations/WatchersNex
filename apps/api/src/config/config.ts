@@ -24,6 +24,8 @@ const schema = z.object({
    * app's Vercel rewrite also sits in front.
    */
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
+  /** Label recorded on every check result from this worker. */
+  PROBE_REGION: z.string().min(1).max(40).default('eu-west'),
   /** Public URL of the web app; links in emails point here. */
   APP_BASE_URL: z.string().url().default('http://localhost:5173'),
   /** Secure cookies need HTTPS. Only local development and tests turn this off. */

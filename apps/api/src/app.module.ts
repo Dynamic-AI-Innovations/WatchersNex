@@ -9,12 +9,19 @@ import { HealthController } from './health/health.controller.js';
 import { AuthController } from './identity/auth.controller.js';
 import { AuthGuard } from './identity/auth.guard.js';
 import { AuthService } from './identity/auth.service.js';
+import { IncidentsService } from './monitoring/incidents.service.js';
+import { MonitoringController } from './monitoring/monitoring.controller.js';
+import { MonitorsService } from './monitoring/monitors.service.js';
+import { MONITOR_POLICY } from './monitoring/policy.js';
+import { PUBLIC_ONLY, TargetPolicy } from './monitoring/ssrf.js';
 import { OrgsController } from './tenancy/orgs.controller.js';
 import { OrgsService } from './tenancy/orgs.service.js';
 
 export interface AppOverrides {
   /** Tests replace email delivery with an in-memory sender. */
   emailSender?: EmailSender;
+  /** Tests allow loopback targets; production always uses PUBLIC_ONLY. */
+  monitorPolicy?: TargetPolicy;
 }
 
 function emailSenderFor(config: AppConfig, logger: Logger): EmailSender {
@@ -31,7 +38,7 @@ export class AppModule {
       module: AppModule,
       global: true,
       imports: [DatabaseModule],
-      controllers: [HealthController, AuthController, OrgsController],
+      controllers: [HealthController, AuthController, OrgsController, MonitoringController],
       providers: [
         { provide: APP_CONFIG, useValue: config },
         { provide: LOGGER, useValue: logger },
@@ -39,6 +46,9 @@ export class AppModule {
         AuthService,
         AuthGuard,
         OrgsService,
+        MonitorsService,
+        IncidentsService,
+        { provide: MONITOR_POLICY, useValue: overrides.monitorPolicy ?? PUBLIC_ONLY },
       ],
       exports: [APP_CONFIG, LOGGER, EMAIL_SENDER],
     };

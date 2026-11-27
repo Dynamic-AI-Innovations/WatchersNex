@@ -17,6 +17,7 @@
     "@nestjs/platform-express": "^12.6.3",
     "@node-rs/argon2": "^2.2.2",
     "cookie-parser": "^1.4.7",
+    "ipaddr.js": "^2.5.0",
     "kysely": "^0.29.9",
     "node-pg-migrate": "^9.0.0",
     "pg": "^8.23.1",
