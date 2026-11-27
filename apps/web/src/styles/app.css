@@ -391,3 +391,9 @@ a:hover { text-decoration: underline; }
   /* The top bar keeps only the product name, sections and Sign out. */
   .sidebar__account { display: none; }
 }
+
+@media (max-width: 768px) {
+  /* Keep the top bar at its natural height on short pages. */
+  .shell { grid-template-rows: auto 1fr; }
+  .sidebar { align-content: flex-start; }
+}
