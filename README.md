@@ -3,6 +3,8 @@
 Digital reliability and operations intelligence platform by Dynamics Technology.
 *Complete Visibility. Intelligent Control.* (Name provisional, pending legal clearance.)
 
+**Licence:** proprietary, all rights reserved (see [LICENSE](LICENSE)). Visible publicly, not open source.
+
 **Status:** Phase 3, engineering foundation. Not deployed. No customer-facing features yet.
 
 ## Source of truth
