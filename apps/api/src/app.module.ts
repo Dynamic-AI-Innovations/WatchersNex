@@ -14,7 +14,12 @@ import { MonitoringController } from './monitoring/monitoring.controller.js';
 import { MonitorsService } from './monitoring/monitors.service.js';
 import { MONITOR_POLICY } from './monitoring/policy.js';
 import { PUBLIC_ONLY, TargetPolicy } from './monitoring/ssrf.js';
+import { AlertPoliciesService } from './monitoring/alert-policies.service.js';
+import { ReportsService } from './monitoring/reports.service.js';
+import { MembersService } from './tenancy/members.service.js';
 import { OrgsController } from './tenancy/orgs.controller.js';
+import { AccountController, InvitationsController, SettingsController } from './tenancy/settings.controller.js';
+import { WorkspaceService } from './tenancy/workspace.service.js';
 import { OrgsService } from './tenancy/orgs.service.js';
 
 export interface AppOverrides {
@@ -38,7 +43,7 @@ export class AppModule {
       module: AppModule,
       global: true,
       imports: [DatabaseModule],
-      controllers: [HealthController, AuthController, OrgsController, MonitoringController],
+      controllers: [HealthController, AuthController, AccountController, OrgsController, SettingsController, InvitationsController, MonitoringController],
       providers: [
         { provide: APP_CONFIG, useValue: config },
         { provide: LOGGER, useValue: logger },
@@ -48,6 +53,10 @@ export class AppModule {
         OrgsService,
         MonitorsService,
         IncidentsService,
+        MembersService,
+        WorkspaceService,
+        AlertPoliciesService,
+        ReportsService,
         { provide: MONITOR_POLICY, useValue: overrides.monitorPolicy ?? PUBLIC_ONLY },
       ],
       exports: [APP_CONFIG, LOGGER, EMAIL_SENDER],

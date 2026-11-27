@@ -3,6 +3,7 @@ import { sql } from 'kysely';
 import type { Logger } from 'pino';
 import { Db, Tx, withAppRole, withTenant } from '../db/database.js';
 import type { EmailSender } from '../email/email.js';
+import { resolveRecipients } from './alert-policies.service.js';
 import { CheckResult, runDnsCheck, runHttpCheck, runSslCheck } from './checks.js';
 import { evaluate, MonitorState, severityFor } from './evaluator.js';
 import { PUBLIC_ONLY, TargetPolicy } from './ssrf.js';
@@ -207,14 +208,8 @@ export class MonitoringEngine {
         .execute();
 
       if (!event) return undefined;
-      const recipients = await tx
-        .selectFrom('memberships as m')
-        .innerJoin('users as u', 'u.id', 'm.user_id')
-        .select('u.email')
-        .where('m.role', 'in', ['owner', 'admin'])
-        .where('u.status', '=', 'active')
-        .execute();
-      return { event, recipients: recipients.map((r) => r.email), result: final.result };
+      const recipients = await resolveRecipients(tx, event.severity as 'sev1' | 'sev2' | 'sev3' | 'sev4', event.kind);
+      return { event, recipients, result: final.result };
     });
 
     if (notify) await this.sendIncidentEmails(monitor, notify.event, notify.recipients, notify.result);

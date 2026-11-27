@@ -122,6 +122,29 @@ export interface Database {
     occurred_at: Generated<Date>;
     details: Generated<unknown>;
   };
+  invitations: {
+    id: string;
+    organisation_id: string;
+    email: string;
+    role: 'admin' | 'operator' | 'viewer';
+    token_hash: Buffer;
+    invited_by: string;
+    expires_at: Date;
+    accepted_at: Date | null;
+  };
+  alert_policies: {
+    id: string;
+    organisation_id: string;
+    name: string;
+    min_severity: Generated<'sev1' | 'sev2' | 'sev3' | 'sev4'>;
+    notify_on: Generated<string[]>;
+    member_ids: Generated<string[]>;
+    external_emails: Generated<string[]>;
+    enabled: Generated<boolean>;
+    created_by: string;
+    created_at: Generated<Date>;
+    updated_at: Generated<Date>;
+  };
   audit_events: {
     id: string;
     organisation_id: string | null;
@@ -132,6 +155,7 @@ export interface Database {
     resource_id: string | null;
     ip: string | null;
     metadata: Generated<unknown>;
+    occurred_at: Generated<Date>;
   };
 }
 

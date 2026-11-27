@@ -2,7 +2,7 @@ import type { Logger } from 'pino';
 
 export interface EmailMessage {
   /** Category, for logs and metrics. */
-  kind: 'verify-email' | 'password-reset' | 'account-exists' | 'account-locked' | 'incident-opened' | 'incident-resolved';
+  kind: 'verify-email' | 'password-reset' | 'account-exists' | 'account-locked' | 'incident-opened' | 'incident-resolved' | 'invitation';
   to: string;
   subject: string;
   text: string;

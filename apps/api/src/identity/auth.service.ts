@@ -33,6 +33,8 @@ export const loginSchema = z.object({ email, password: z.string().min(1).max(128
 export const emailOnlySchema = z.object({ email });
 export const tokenSchema = z.object({ token: z.string().min(20).max(100) });
 export const resetSchema = z.object({ token: z.string().min(20).max(100), password: passwordSchema });
+export const profileSchema = z.object({ name: z.string().trim().min(1).max(200) }).strict();
+export const changePasswordSchema = z.object({ currentPassword: z.string().min(1).max(128), newPassword: passwordSchema });
 
 export interface RequestMeta {
   ip: string | null;
@@ -283,6 +285,43 @@ export class AuthService {
         .where('revoked_at', 'is', null)
         .execute();
       await this.audit(tx, userId, 'user.password_reset', meta);
+    });
+  }
+
+  async updateProfile(session: ResolvedSession, input: z.infer<typeof profileSchema>, meta: RequestMeta): Promise<SessionUser> {
+    await withAppRole(this.db, async (tx) => {
+      await tx.updateTable('users').set({ name: input.name }).where('id', '=', session.user.id).execute();
+      await this.audit(tx, session.user.id, 'user.profile_update', meta);
+    });
+    return { ...session.user, name: input.name };
+  }
+
+  /** Requires the current password; signs out every other session of this user. */
+  async changePassword(session: ResolvedSession, input: z.infer<typeof changePasswordSchema>, meta: RequestMeta): Promise<void> {
+    const user = await withAppRole(this.db, (tx) =>
+      tx.selectFrom('users').select(['password_hash']).where('id', '=', session.user.id).executeTakeFirstOrThrow(),
+    );
+    if (!(await verifyPassword(user.password_hash, input.currentPassword))) {
+      throw new ProblemException(422, 'validation', 'Invalid request', 'Your current password is incorrect.', [
+        { field: 'currentPassword', message: 'is incorrect' },
+      ]);
+    }
+    if (input.newPassword.toLowerCase() === session.user.email) {
+      throw new ProblemException(422, 'validation', 'Invalid request', 'Choose a password that is not your email address.', [
+        { field: 'newPassword', message: 'must not be your email address' },
+      ]);
+    }
+    const passwordHash = await hashPassword(input.newPassword);
+    await withAppRole(this.db, async (tx) => {
+      await tx.updateTable('users').set({ password_hash: passwordHash, password_changed_at: new Date() }).where('id', '=', session.user.id).execute();
+      await tx
+        .updateTable('sessions')
+        .set({ revoked_at: new Date() })
+        .where('user_id', '=', session.user.id)
+        .where('id', '<>', session.sessionId)
+        .where('revoked_at', 'is', null)
+        .execute();
+      await this.audit(tx, session.user.id, 'user.password_change', meta);
     });
   }
 
