@@ -9,4 +9,3 @@ coverage/
 # embedded PostgreSQL data used by local tests
 .pgdata/
 .vercel
-.env*
