@@ -4,8 +4,15 @@ import { AuthLayout, Field, Notice, ProblemNotice, useSubmit } from '../componen
 import { api } from '../lib/api';
 import { useSession } from '../lib/session';
 
+/** Only same-site relative paths are accepted as a return destination (no open redirect). */
+function safeNext(value: string | null): string {
+  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\') ? value : '/';
+}
+
 export function SignInPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const { refresh } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +21,7 @@ export function SignInPage() {
     () => api.login({ email, password }),
     async () => {
       await refresh();
-      navigate('/', { replace: true });
+      navigate(next, { replace: true });
     },
   );
 
@@ -40,7 +47,7 @@ export function SignInPage() {
         <Link to="/forgot-password">Forgot your password?</Link>
       </p>
       <p className="auth__alt">
-        New to WatchersNex? <Link to="/sign-up">Create an account</Link>
+        New to WatchersNex? <Link to={next === '/' ? '/sign-up' : `/sign-up?next=${encodeURIComponent(next)}`}>Create an account</Link>
       </p>
     </AuthLayout>
   );
@@ -48,10 +55,12 @@ export function SignInPage() {
 
 export function SignUpPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
+  const [form, setForm] = useState({ name: '', email: params.get('email') ?? '', password: '' });
   const { submit, pending, error } = useSubmit(
     () => api.register(form),
-    () => navigate('/check-email', { state: { email: form.email } }),
+    () => navigate(next === '/' ? '/check-email' : `/check-email?next=${encodeURIComponent(next)}`),
   );
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: e.target.value });
 
@@ -69,7 +78,7 @@ export function SignUpPage() {
         </button>
       </form>
       <p className="auth__alt">
-        Already have an account? <Link to="/sign-in">Sign in</Link>
+        Already have an account? <Link to={next === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(next)}`}>Sign in</Link>
       </p>
     </AuthLayout>
   );

@@ -179,6 +179,66 @@ export interface CreateMonitorInput {
   authorisationAttested: boolean;
 }
 
+export type Role = 'owner' | 'admin' | 'operator' | 'viewer';
+
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  joinedAt: string;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: Exclude<Role, 'owner'>;
+  expiresAt: string;
+  invitedBy: string;
+}
+
+export interface AlertPolicy {
+  id: string;
+  name: string;
+  minSeverity: Severity;
+  notifyOn: Array<'opened' | 'resolved'>;
+  memberIds: string[];
+  externalEmails: string[];
+  enabled: boolean;
+  updatedAt: string;
+}
+export type AlertPolicyInput = Omit<AlertPolicy, 'id' | 'updatedAt'>;
+
+export interface PlanUsage {
+  plan: { id: string; name: string; limits: { monitors: number; min_interval_seconds: number; regions: number; seats: number; retention_days: number } };
+  usage: { monitors: number; members: number; invitations: number; fastest: number | null };
+}
+
+export interface AuditEvent {
+  id: string;
+  action: string;
+  resourceType: string;
+  resourceId: string | null;
+  occurredAt: string;
+  ip: string | null;
+  metadata: Record<string, unknown>;
+  actorType: string;
+  actorName: string | null;
+  actorEmail: string | null;
+}
+
+export interface AvailabilityReport {
+  from: string;
+  to: string;
+  method: string;
+  summary: { services: number; availability: number | null; downtimeSeconds: number; incidents: number };
+  services: Array<{
+    monitorId: string; name: string; type: MonitorType; target: string; deleted: boolean; periodSeconds: number; downtimeSeconds: number;
+    availability: number | null; incidents: number; checks: number; checksPassed: number | null; latencyP50Ms: number | null; latencyP95Ms: number | null;
+  }>;
+  incidents: Array<{ id: string; number: number; title: string; severity: Severity; status: IncidentStatus; monitorName: string; startedAt: string; resolvedAt: string | null; durationSeconds: number }>;
+}
+
 export const api = {
   register: (input: { email: string; name: string; password: string }) => request<void>('POST', '/auth/register', input),
   verifyEmail: (token: string) => request<void>('POST', '/auth/verify-email', { token }),
@@ -202,4 +262,23 @@ export const api = {
   acknowledge: (orgId: string, id: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/acknowledge`),
   resolve: (orgId: string, id: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/resolve`),
   addNote: (orgId: string, id: string, text: string) => request<IncidentDetail>('POST', `/orgs/${orgId}/incidents/${id}/notes`, { text }),
+
+  updateOrg: (orgId: string, input: { name?: string; timezone?: string }) => request<Organisation>('PATCH', `/orgs/${orgId}`, input),
+  members: (orgId: string) => request<{ members: Member[]; invitations: PendingInvitation[] }>('GET', `/orgs/${orgId}/members`),
+  invite: (orgId: string, input: { email: string; role: Exclude<Role, 'owner'> }) => request<{ members: Member[]; invitations: PendingInvitation[] }>('POST', `/orgs/${orgId}/invitations`, input),
+  revokeInvitation: (orgId: string, id: string) => request<void>('DELETE', `/orgs/${orgId}/invitations/${id}`),
+  changeRole: (orgId: string, userId: string, role: Role) => request<{ members: Member[]; invitations: PendingInvitation[] }>('PATCH', `/orgs/${orgId}/members/${userId}`, { role }),
+  removeMember: (orgId: string, userId: string) => request<void>('DELETE', `/orgs/${orgId}/members/${userId}`),
+  alertPolicies: (orgId: string) => request<{ items: AlertPolicy[] }>('GET', `/orgs/${orgId}/alert-policies`),
+  createAlertPolicy: (orgId: string, input: AlertPolicyInput) => request<AlertPolicy>('POST', `/orgs/${orgId}/alert-policies`, input),
+  updateAlertPolicy: (orgId: string, id: string, input: AlertPolicyInput) => request<AlertPolicy>('PUT', `/orgs/${orgId}/alert-policies/${id}`, input),
+  deleteAlertPolicy: (orgId: string, id: string) => request<void>('DELETE', `/orgs/${orgId}/alert-policies/${id}`),
+  plan: (orgId: string) => request<PlanUsage>('GET', `/orgs/${orgId}/plan`),
+  auditEvents: (orgId: string, before?: string) => request<{ items: AuditEvent[]; nextBefore: string | null }>('GET', `/orgs/${orgId}/audit-events?limit=50${before ? `&before=${encodeURIComponent(before)}` : ''}`),
+  availability: (orgId: string, from: string, to: string) => request<AvailabilityReport>('GET', `/orgs/${orgId}/reports/availability?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+  availabilityCsvUrl: (orgId: string, from: string, to: string) => `/api/v1/orgs/${orgId}/reports/availability.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+  updateProfile: (name: string) => request<{ user: User }>('PATCH', '/me', { name }),
+  changePassword: (currentPassword: string, newPassword: string) => request<void>('POST', '/me/password', { currentPassword, newPassword }),
+  invitationPreview: (token: string) => request<{ organisationName: string; role: Role; email: string; expiresAt: string }>('GET', `/invitations/preview?token=${encodeURIComponent(token)}`),
+  acceptInvitation: (token: string) => request<{ organisationId: string }>('POST', '/invitations/accept', { token }),
 };

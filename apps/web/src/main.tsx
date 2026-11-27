@@ -15,9 +15,14 @@ import {
   SignUpPage,
   VerifyEmailPage,
 } from './pages/auth';
+import { AccountPage } from './pages/account';
 import { IncidentDetailPage, IncidentsPage } from './pages/incidents';
+import { InvitePage } from './pages/invite';
 import { OverviewPage } from './pages/overview';
 import { NewServicePage, ServiceDetailPage, ServicesPage } from './pages/services';
+import { PreviewPage, SHOW_PREVIEW_MODULES } from './pages/preview';
+import { ReportsPage } from './pages/reports';
+import { AlertsSettings, AuditLogSettings, GeneralSettings, MembersSettings, PlanSettings, SettingsLayout } from './pages/settings';
 import { OrgShell } from './pages/shell';
 import { CreateOrganisationPage } from './pages/workspace';
 
@@ -63,7 +68,26 @@ createRoot(document.getElementById('root')!).render(
             <Route path="services/:monitorId" element={<ServiceDetailPage />} />
             <Route path="incidents" element={<IncidentsPage />} />
             <Route path="incidents/:incidentId" element={<IncidentDetailPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="account" element={<AccountPage />} />
+            <Route path="settings" element={<SettingsLayout />}>
+              <Route index element={<GeneralSettings />} />
+              <Route path="members" element={<MembersSettings />} />
+              <Route path="alerts" element={<AlertsSettings />} />
+              <Route path="plan" element={<PlanSettings />} />
+              <Route path="audit" element={<AuditLogSettings />} />
+            </Route>
+            {SHOW_PREVIEW_MODULES && (
+              <>
+                <Route path="observability" element={<PreviewPage module="observability" />} />
+                <Route path="dependencies" element={<PreviewPage module="dependencies" />} />
+                <Route path="slos" element={<PreviewPage module="slos" />} />
+                <Route path="automation" element={<PreviewPage module="automation" />} />
+                <Route path="integrations" element={<PreviewPage module="integrations" />} />
+              </>
+            )}
           </Route>
+          <Route path="/invite" element={<InvitePage />} />
           <Route path="/" element={<RequireSession><Home /></RequireSession>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
