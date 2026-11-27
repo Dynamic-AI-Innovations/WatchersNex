@@ -5,7 +5,7 @@ Digital reliability and operations intelligence platform by Dynamics Technology.
 
 **Licence:** proprietary, all rights reserved (see [LICENSE](LICENSE)). Visible publicly, not open source.
 
-**Status:** Phase 3, engineering foundation. Not deployed. No customer-facing features yet.
+**Status:** Phase 3, engineering foundation. Staging deployed: accounts, sessions and organisations work; monitoring not built yet.
 
 ## Source of truth
 
