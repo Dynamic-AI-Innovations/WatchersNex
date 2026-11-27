@@ -12,7 +12,6 @@ body {
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.5;
-  font-feature-settings: 'tnum' 1; /* tabular numerals for data */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -227,3 +226,6 @@ a:hover { text-decoration: underline; }
 }
 
 .center-screen { min-height: 100vh; display: grid; place-items: center; color: var(--text-secondary); }
+
+/* Tabular numerals for data only (brand guide: metrics, timestamps, levels). */
+.tnum, .fact strong, time { font-variant-numeric: tabular-nums; }
