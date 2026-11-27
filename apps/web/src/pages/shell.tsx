@@ -92,6 +92,7 @@ export function OrgShell() {
           {items.map((n) => (
             <NavLink key={n.label} to={`/o/${orgId}${n.path ? `/${n.path}` : ''}`} end={!n.path}>{n.label}</NavLink>
           ))}
+          <NavLink to={`/o/${orgId}/account`}>Account</NavLink>
         </nav>
         <div className="sidebar__user">
           <Link to={`/o/${orgId}/account`} className="sidebar__account">

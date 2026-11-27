@@ -386,3 +386,8 @@ a:hover { text-decoration: underline; }
   body { background: #fff; }
   a { color: inherit; text-decoration: none; }
 }
+
+@media (max-width: 768px) {
+  /* The top bar keeps only the product name, sections and Sign out. */
+  .sidebar__account { display: none; }
+}
